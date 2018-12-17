@@ -19,28 +19,54 @@ def filter_entries(entries, mode, arg):
         return [e for e in entries['exact'] if e['gram']['pos'] == arg]
 
 
-def def_art(word):
-    entries = filter_entries(get_entries(word), "type", 'NOU-C')
+def check_found(entries, word):
     if not entries:
-        print(f"{word} is geen zelfstandig naamwoord of het staat niet in de woordenlijst.")
-        return
+        print(f"{word} is niet van de juiste soort, of het staat niet in de woordenlijst.")
+        return False
     else:
-        t_data = [
-            ["Zelfst. nm.", "Bep. lw."],
-            [entries[0]['lemma'], entries[0]['gram']['art']]
-        ]
-        table = AsciiTable(t_data)
-        print(table.table)
+        return True
 
+
+def q_def_art(word):
+    entries = filter_entries(get_entries(word), "type", 'NOU-C')
+    if check_found(entries, word):
+        return [(entries[0]['lemma'], entries[0]['gram']['art'])]
+
+
+def q_gender(word):
+    entries = filter_entries(get_entries(word), "type", 'NOU-C')
+    if check_found(entries, word):
+        if entries[0]['gram']['gender'] == "n":
+            gend = "onzijdig"
+        elif entries[0]['gram']['gender'] == "m":
+            gend = "mannelijk"
+        else:
+            gend = "vrouwelijk"
+        return [(entries[0]['lemma'], gend)]
 
 def main(args):
     word = args.woord.lower()
+    res = {}
+    t_data = [["Woord"], [word]]
+
     if args.l:
-        def_art(word)
+        res['Bep. lidw.'] = q_def_art(word)
+    if args.g:
+        res['Geslacht'] = q_gender(word)
+    
+    for k in res.keys():
+        t_data[0].append(k)
+        t_data[1].append(res[k][0][1])
+    table = AsciiTable(t_data)
+    print(table.table)
+
+
 
 if __name__ == "__main__":
     pars = argparse.ArgumentParser(description='Terminal-client voor woordenlijst.org')
     pars.add_argument("woord", help="zoek het gegeven woord op woordenlijst.org")
     pars.add_argument("-l", help="zoek het bepaald lidwoord dat bij het gegeven woord (znw) hoort",
+                      action="store_true")
+    pars.add_argument("-g", help="zoek het geslacht dat bij het gegeven woord (znw) hoort",
                       action="store_true")
     main(pars.parse_args())
