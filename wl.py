@@ -3,7 +3,7 @@
 import argparse
 import requests
 import sys
-from terminaltables import AsciiTable
+from terminaltables import SingleTable
 
 
 def get_entries(word):
@@ -56,15 +56,18 @@ def main(args):
     
     for k in res.keys():
         t_data[0].append(k)
-        t_data[1].append(res[k][0][1])
-    table = AsciiTable(t_data)
+        if res[k]:
+            t_data[1].append(res[k][0][1])
+        else:
+            t_data[1].append("---")
+    table = SingleTable(t_data)
     print(table.table)
 
 
 
 if __name__ == "__main__":
     pars = argparse.ArgumentParser(description='Terminal-client voor woordenlijst.org')
-    pars.add_argument("woord", help="zoek het gegeven woord op woordenlijst.org")
+    pars.add_argument("woord", help="zoek dit woord op woordenlijst.org")
     pars.add_argument("-l", help="zoek het bepaald lidwoord dat bij het gegeven woord (znw) hoort",
                       action="store_true")
     pars.add_argument("-g", help="zoek het geslacht dat bij het gegeven woord (znw) hoort",
